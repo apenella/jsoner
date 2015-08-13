@@ -1,30 +1,41 @@
 /* package Example; */
 
 import java_cup.runtime.*;
+import java.io.*;
+import java.lang.String;
 
 parser code {:
-	public static void main(String args[]) throws Exception {
-		new parser(new Yylex(System.in)).parse();
+	static FileInputStream FInStr = null;
+	public static String fInName;
+
+	public static void main(String argv[]) throws Exception {
+		parser p;
+		if (argv.length<1) {
+			System.out.println ("Numero parametres incorrecte!");
+		} else {
+			fInName = argv[0];
+			try {
+				FInStr = new FileInputStream(fInName); //Obre fitxer
+			} catch (FileNotFoundException e) {
+				System.out.println (fInName + ": Impossible obrir fitxer!");
+				return;
+			}
+			p = new parser(new Yylex (FInStr));
+			p.parse();
+		}
 	}
 :}
 
-terminal SEMI, PLUS, TIMES, LPAREN, RPAREN;
+
+terminal OBRACE, CBRACE, OBRACKET, CBRACKET, COMMA, COLON, QUOTE;
+terminal Integer INTEGER;
 terminal Integer NUMBER;
+terminal Boolean BOOLEAN;
+terminal STRING;
 
-non terminal expr_list, expr_part;
-non terminal Integer expr;
+non terminal json;
+non terminal content;
 
-precedence left PLUS;
-precedence left TIMES;
 
-expr_list ::= expr_list expr_part | expr_part;
-expr_part ::= expr:e {: System.out.println(" = "+e+";"); :} SEMI;
-expr      ::= NUMBER:n
-	      {: RESULT=n; :}
-            | expr:l PLUS expr:r
-	      {: RESULT=new Integer(l.intValue() + r.intValue()); :}
-	    | expr:l TIMES expr:r
-	      {: RESULT=new Integer(l.intValue() * r.intValue()); :}
-	    | LPAREN expr:e RPAREN
-	      {: RESULT=e; :}
-	    ;
+json ::= content | content json;
+content ::= OBRACE NUMBER:n CBRACE {: System.out.println(n); :};
