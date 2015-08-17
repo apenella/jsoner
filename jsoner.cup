@@ -29,13 +29,23 @@ parser code {:
 
 terminal OBRACE, CBRACE, OBRACKET, CBRACKET, COMMA, COLON, QUOTE;
 terminal Integer INTEGER;
-terminal Integer NUMBER;
 terminal Boolean BOOLEAN;
 terminal STRING;
 
-non terminal json;
-non terminal content;
+non terminal json, json_data, json_attr;
+non terminal array, array_data;
+non terminal type;
 
 
-json ::= content | content json;
-content ::= OBRACE NUMBER:n CBRACE {: System.out.println(n); :};
+json ::= OBRACE json_data CBRACE {::};
+json_data ::= json_data COMMA json_attr {::} | json_attr {::};
+json_attr ::= STRING COLON type:t {: System.out.print :};
+
+array ::= OBRACKET array_data CBRACKET {::};
+array_data ::= array_data COMMA type {::} | type {::};
+
+type ::= STRING:s {: System.out.println("string found"); :} 
+	| INTEGER:i {: System.out.println("integer found"); :}
+	| BOOLEAN:b {: System.out.println("boolean found"); :}
+	| array {: System.out.println("array found"); :}
+	| json {: System.out.println("json found"); :};

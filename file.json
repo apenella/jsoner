@@ -1,1 +1,14 @@
-{1}
+{
+	"hola":"hola",
+	"adeu":0,
+	"salut":"salut",
+	"critic":["hola","hola",0],
+	"hola":{
+		"hola":"hola",
+		"ris":{
+			"un":0,
+			"dos":3,
+			"quatre":true
+		}
+	}
+}
