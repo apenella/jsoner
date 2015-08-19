@@ -2,6 +2,8 @@
 
 import java_cup.runtime.*;
 import java.io.*;
+import java.util.*;
+import java.util.HashMap;
 import java.lang.String;
 
 parser code {:
@@ -30,22 +32,85 @@ parser code {:
 terminal OBRACE, CBRACE, OBRACKET, CBRACKET, COMMA, COLON, QUOTE;
 terminal Integer INTEGER;
 terminal Boolean BOOLEAN;
-terminal STRING;
+terminal String STRING;
 
-non terminal json, json_data, json_attr;
-non terminal array, array_data;
-non terminal type;
+non terminal HashMap json; 
+non terminal HashMap json_type; 
+non terminal HashMap json_data; 
+non terminal HashMap json_attr;
+non terminal List array; 
+non terminal List array_data;
+non terminal Object type;
 
 
-json ::= OBRACE json_data CBRACE {::};
-json_data ::= json_data COMMA json_attr {::} | json_attr {::};
-json_attr ::= STRING COLON type:t {: System.out.print :};
+json ::= json_type {::} | {::};
+json_type ::= OBRACE json_data:j CBRACE 
+		{:
+			for (Object key : j.keySet()) {
+        		System.out.println(key+" "+j.get(key).toString());
+    		}
+		:};
+json_data ::= json_data:j COMMA json_attr:a 
+		{:
+			j.putAll(a);
 
-array ::= OBRACKET array_data CBRACKET {::};
-array_data ::= array_data COMMA type {::} | type {::};
+			RESULT=j;
+		:} 
+	| json_attr:a 
+		{:
+			RESULT=a;
+		:} 
+	| 	{::};
+json_attr ::= STRING:s COLON type:t 
+		{:
+			HashMap j = new HashMap<String,Object>();
+			j.put(s,t);
 
-type ::= STRING:s {: System.out.println("string found"); :} 
-	| INTEGER:i {: System.out.println("integer found"); :}
-	| BOOLEAN:b {: System.out.println("boolean found"); :}
-	| array {: System.out.println("array found"); :}
-	| json {: System.out.println("json found"); :};
+			RESULT=j;
+		:};
+
+array ::= OBRACKET array_data:a CBRACKET 
+		{: 
+			//return array list
+			RESULT=a; 
+		:};
+array_data ::= array_data:a COMMA type:t 
+		{:
+			//add objects to array list
+			a.add((Object)t);
+			
+			RESULT=a;
+		:} 
+	| type:t 
+		{:
+			//create an array list of objects
+			List a = new ArrayList<Object>();
+			a.add((Object)t);
+
+			RESULT=a;
+		:}
+	| 	{: 
+			//return an empty array
+			RESULT= new ArrayList<Object>(); 
+		:};
+
+type ::= STRING:s 
+		{: 
+			RESULT=(Object)s;
+		:} 
+	| INTEGER:i 
+		{: 
+			RESULT=(Object)i; 
+		:}
+	| BOOLEAN:b 
+		{: 
+			RESULT=(Object)b;
+		:}
+	| array:a 
+		{: 
+			RESULT=(Object)a; 
+		:}
+	| json_type 
+		{:
+			RESULT=""; 
+	 	:};
